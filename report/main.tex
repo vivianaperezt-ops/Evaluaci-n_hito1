@@ -1,0 +1,120 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{cite}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\title{\textbf{Nota Técnica: Análisis Carga-Deflexión y Validación Elástica Lineal en Viga Simplemente Apoyada}}
+\author{\textbf{Viviana Perez Tapia} \\ Métodos Computacionales en Ingeniería Civil}
+\date{Octubre de 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+En el presente trabajo se desarrolla un flujo de análisis reproducible para caracterizar la respuesta elástica lineal de una viga simplemente apoyada sujeta a una carga puntual en el centro de la luz. Se contrastan mediciones experimentales sintéticas frente a la solución analítica deducida mediante la teoría de vigas de Euler-Bernoulli. Los resultados muestran una elevada correspondencia física, con diferencias relativas inferiores al $4.0\,\%$, validando la consistencia del modelo analítico bajo las solicitaciones consideradas.
+\end{abstract}
+
+\section{Introducción y Objetivos}
+La caracterización de deformaciones transversales en elementos prismáticos sometidos a flexión simple es una competencia básica en el análisis estructural \cite{hibbeler_mecanica_2017}. 
+
+El objetivo de esta nota técnica es implementar un flujo computacional reproducible para:
+\begin{enumerate}
+    \item Evaluar analíticamente la deflexión teórica en el centro del vano mediante la formulación elástica de Euler-Bernoulli.
+    \item Contrastar cuantitativamente las diferencias relativas entre la predicción teórica y los datos medidos del ensayo sintético.
+    \item Ejecutar una verificación dimensional e independiente para documentar el comportamiento y las limitaciones del modelo.
+\end{enumerate}
+
+\section{Geometría, Parámetros y Formulación Teórica}
+El caso de estudio corresponde a una viga simplemente apoyada con una luz libre entre apoyos $L = 4.0\text{ m}$. La sección transversal es rectangular maciza, de ancho $b = 0.2\text{ m}$ y peralte $h = 0.4\text{ m}$. El material se modela como elástico lineal, homogéneo e isotrópico, con módulo de elasticidad $E = 25\text{ GPa} = 25 \times 10^9\text{ Pa}$.
+
+El segundo momento de área ($I$) con respecto al eje centroidal neutro se calcula como:
+\begin{equation}
+    I = \frac{b \cdot h^3}{12} = \frac{0.2\text{ m} \cdot (0.4\text{ m})^3}{12} = 1.0667 \times 10^{-3}\text{ m}^4
+\end{equation}
+
+Bajo las hipótesis de la teoría clásica de vigas de Euler-Bernoulli (pequeñas deformaciones y secciones transversales planas que permanecen normales al eje neutro deformado), la deflexión central vertical $\delta_{\text{teo}}$ producida por una carga puntual centrada $P$ está dada por \cite{hibbeler_mecanica_2017}:
+\begin{equation}
+    \delta_{\text{teo}} = \frac{P L^3}{48 E I}
+\end{equation}
+
+Expresando la carga $P$ en $\text{kN}$ ($1\text{ kN} = 10^3\text{ N}$), $E$ en $\text{kN/m}^2$ ($25 \times 10^6\text{ kN/m}^2$) y convirtiendo el desplazamiento a milímetros ($10^3\text{ mm/m}$), la flexibilidad analítica en el centro resulta:
+\begin{equation}
+    \frac{\delta_{\text{teo}}}{P} = \frac{4.0^3}{48 \cdot (25 \times 10^6) \cdot (1.0667 \times 10^{-3})} \times 10^3 = 0.050\text{ mm/kN}
+\end{equation}
+
+\section{Resultados y Comparación}
+Para cada escalón de carga entre $0$ y $40\text{ kN}$, se determinó la deflexión teórica y se calculó la discrepancia relativa porcentual para cargas $P > 0$ mediante:
+\begin{equation}
+    \text{Diferencia Relativa (\%)} = \frac{|\delta_{\text{med}} - \delta_{\text{teo}}|}{\delta_{\text{teo}}} \times 100
+\end{equation}
+
+Los valores obtenidos se resumen en la Tabla \ref{tab:resultados}.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparación entre deflexiones medidas y predicción teórica de Euler-Bernoulli.}
+\label{tab:resultados}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{Carga $P$ [kN]} & \textbf{$\delta_{\text{med}}$ [mm]} & \textbf{$\delta_{\text{teo}}$ [mm]} & \textbf{Diferencia Relativa [\%]} & \textbf{$\delta_{\text{med}}/P$ [mm/kN]} \\
+\midrule
+0  & 0.00 & 0.00 & ---   & ---    \\
+5  & 0.26 & 0.25 & 4.00  & 0.0520 \\
+10 & 0.50 & 0.50 & 0.00  & 0.0500 \\
+15 & 0.76 & 0.75 & 1.33  & 0.0507 \\
+20 & 1.01 & 1.00 & 1.00  & 0.0505 \\
+25 & 1.28 & 1.25 & 2.40  & 0.0512 \\
+30 & 1.54 & 1.50 & 2.67  & 0.0513 \\
+35 & 1.77 & 1.75 & 1.14  & 0.0506 \\
+40 & 2.05 & 2.00 & 2.50  & 0.0513 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En la Figura \ref{fig:curva} se observa la correspondencia entre los puntos experimentales y la recta teórica, exhibiendo un comportamiento marcadamente lineal.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{carga_deflexion.png}
+\caption{Curva carga-deflexión en el centro del vano: comparación datos vs. solución analítica.}
+\label{fig:curva}
+\end{figure}
+
+\section{Verificación Adicional}
+Se ejecutaron dos comprobaciones independientes para asegurar la trazabilidad del cálculo:
+\begin{enumerate}
+    \item \textbf{Constancia de la razón $\delta/P$:} La pendiente secante experimental $\delta_{\text{med}}/P$ se mantiene con una dispersión reducida en torno a $0.0510\text{ mm/kN}$, muy cercana a la pendiente teórica ($0.0500\text{ mm/kN}$), verificando que la respuesta permanece dentro del régimen lineal elástico.
+    \item \textbf{Cálculo de control a carga máxima ($P = 40\text{ kN}$):}
+    $$\delta_{\text{teo}} = \frac{(40 \times 10^3\text{ N}) \cdot (4\text{ m})^3}{48 \cdot (25 \times 10^9\text{ N/m}^2) \cdot (1.0667 \times 10^{-3}\text{ m}^4)} = 2.00 \times 10^{-3}\text{ m} = 2.00\text{ mm}$$
+    El resultado coincide de forma exacta con la columna analítica programada en la planilla de cálculo.
+\end{enumerate}
+
+\section{Discusión y Limitaciones}
+Aunque las diferencias relativas son bajas (máximo $4.0\,\%$), cabe notar que las mediciones son sistemáticamente iguales o superiores a la solución teórica. Esto se explica por las limitaciones de la formulación empleada:
+\begin{itemize}
+    \item \textbf{Deformación por esfuerzo cortante:} La teoría de Euler-Bernoulli omite las deformaciones transversales debidas a cortante. Para una relación luz-peralte $L/h = 10$, las correcciones por teoría de Timoshenko introducen un incremento de flexibilidad del orden del $1.5\,\%$ a $2.5\,\%$, explicando el leve incremento en las lecturas medidas.
+    \item \textbf{Condición de contorno y apoyos:} Se asumen apoyos simples sin fricción ni asentamientos elásticos, hipótesis idealizadas respecto a ensayos reales.
+\end{itemize}
+
+\section{Conclusiones}
+Se consolidó una metodología reproducible que vincula datos brutos, hojas de análisis, visualización gráfica y comunicación técnica. La formulación lineal elástica de Euler-Bernoulli predice satisfactoriamente las deflexiones para la geometría y cargas evaluadas, registrando un error máximo de $4.0\,\%$.
+
+\bibliographystyle{plain}
+\bibliography{referencias}
+
+\end{document}
